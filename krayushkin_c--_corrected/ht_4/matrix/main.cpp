@@ -1,234 +1,176 @@
 #include <iostream>
-#include <memory>
-#include <utility>
 #include <vector>
 
 using namespace std;
 
-
-class Matrix {
+class Matrix
+{
 private:
-    std::vector<std::vector<int>> values;
-    int Rows_n;
-    int Col_n;
-
+    vector<vector<int> > matrix;
+    int row;
+    int column;
 public:
-    int rows_n() const {
-        return Rows_n;
+    Matrix() : row(0), column(0) {}
+    Matrix(int row, int column) : row(row), column(column)
+    {
+        matrix.resize(row, vector<int>(column));
     }
-
-    int col_n() const {
-        return Col_n;
-    }
-
-    Matrix() {
-        values = {};
-    }
-
-    Matrix(std::vector<std::vector<int>> &arr) {
-        values = arr;
-        Rows_n = values.size();
-        Col_n = values[0].size();
-        for (int i = 0; i < Rows_n; i++) {
-            if (Col_n != values[i].size()) {
-                delete this;
-                throw (1);
+    void EnterMatrix() //ввод матрицы
+    {
+        int element;
+        for (int i = 0; i < row; i++)
+            for (int j = 0; j < column; j++)
+            {
+                cin >> element;
+                matrix[i][j] = element;
             }
-
-        }
-    };
-    Matrix(std::vector<std::vector<int>> &&arr) {
-        values = arr;
-        Rows_n = values.size();
-        Col_n = values[0].size();
-        for (int i = 0; i < Rows_n; i++) {
-            if (Col_n != values[i].size()) {
-                delete this;
-                throw (1);
-            }
-
-        }
-    };
-
-    std::vector<int> &operator[](int i) {
-        return values[i];
-    };
-
-    const std::vector<int> &operator[](int i) const {
-        return values[i];
-    };
-
-    Matrix &operator+=(const Matrix &);
-
-    Matrix &operator-=(const Matrix &);
-
-    Matrix &operator=(const Matrix &);
-
-    Matrix &operator=(Matrix &&);
-
-    Matrix(const Matrix &other) {
-        for (int i = 0; i < other.rows_n(); i++) {
-            for (size_t j = 0; j < other.col_n(); j++) {
-                values[i][j] = other[i][j];
-            }
-        }
     }
-
-    Matrix(Matrix &&other) {
-        for (size_t i = 0; i < other.rows_n(); i++) {
-            for (size_t j = 0; j < other.col_n(); j++) {
-                values[i][j] = move(other[i][j]);
-            }
-        }
-    }
-    Matrix& operator=(const std::vector<std::vector<int>>& other);
-
+    friend Matrix operator+(const Matrix& a, const Matrix& b);
+    friend ostream& operator<<(ostream& out, const Matrix& m);
+    friend Matrix operator*(const Matrix& a, const Matrix& b);
 };
-// проверка на сложение
 
-bool AreSameSize(const Matrix& m1, const Matrix& m2) {
-    if ((m1.rows_n() == m2.rows_n())and(m1.col_n() == m2.col_n()))
+Matrix operator*(const Matrix& a, const Matrix& b)
+{
+
+    cout << "Произведение матриц равно:" << endl;
+    Matrix result(a.row, b.column);
+    for (int i = 0; i < a.row; i++)
     {
-        return true;
-    }
-    return false;
-}
-
-// сложение
-
-Matrix&& operator+(const Matrix& m1,const Matrix& m2) {
-    Matrix result;
-    if (!AreSameSize(m1, m2))
-    {
-        throw(1);
-    }
-    for (int i = 0; i < m1.rows_n(); i++) {
-        for (int j = 0; j < m1.col_n(); j++) {
-            result[i][j] = m1[i][j] + m2[i][j];
-        }
-    }
-    return move(result);
-}
-
-// вычетание
-
-Matrix&& operator-(const Matrix& m1,const Matrix& m2) {
-    Matrix result;
-    if (!AreSameSize(m1, m2))
-    {
-        throw(1);
-    }
-    for (int i = 0; i < m1.rows_n(); i++) {
-        for (int j = 0; j < m1.col_n(); j++) {
-            result[i][j] = m1[i][j] - m2[i][j];
-        }
-    }
-    return move(result);
-}
-
-// умножение
-
-Matrix&& operator*(const Matrix& m1, const Matrix& m2) {
-    Matrix result;
-    if (m1.col_n() != m2.rows_n()){
-        throw(1);
-    }
-    for (int i = 0; i < m1.rows_n(); i++) {
-        for (int j = 0; j < m2.col_n(); j++) {
-            for (int k = 0; k < m1.col_n() ; k++) {
-                result[i][j] += m1[i][k] * m2[k][j];
+        for (int j = 0; j < b.column; j++)
+        {
+            result.matrix[i][j] = 0;
+            for (int t = 0; t < b.row; t++)
+            {
+                result.matrix[i][j] += a.matrix[i][t] * b.matrix[t][j];
             }
-        }
-    }
-    return move(result);
-}
-
-// увелечение
-
-Matrix& Matrix::operator+=(const Matrix& other) {
-    if (!AreSameSize(*this, other))
-    {
-        throw(1);
-    }
-    for (int i = 0; i < other.rows_n(); i++) {
-        for (size_t j = 0; j < other.col_n(); j++) {
-            values[i][j] += other[i][j];
-        }
-    }
-    return *this;
-}
-
-// уменьшение
-
-Matrix& Matrix::operator-=(const Matrix& other) {
-    if (!AreSameSize(*this, other))
-    {
-        throw(1);
-    }
-    for (int i = 0; i < other.rows_n() ; i++) {
-        for (int j = 0; j < other.col_n(); j++) {
-            values[i][j] -= other[i][j];
-        }
-    }
-    return *this;
-}
-
-// присваивание
-
-Matrix& Matrix::operator=(const Matrix& other) {
-    values = other.values;
-    return *this;
-}
-
-// замена
-
-Matrix& Matrix::operator=(Matrix&& other) {
-    values = move(other.values);
-    return *this;
-}
-//  транспонирование
-Matrix& Transpose(const Matrix& other){
-    Matrix result;
-    for (int i = 0; i < other.rows_n(); i++) {
-        for (int j = 0; j < other.col_n(); j++) {
-            result[i][j] = other[j][i];
         }
     }
     return result;
 }
 
-std::ostream& operator<< (std::ostream &out, const Matrix& m1) {
-    for (int i = 0; i < m1.rows_n(); i++) {
-        for (int j = 0; j < m1.col_n(); j++) {
-            out << m1[i][j] << " ";
+Matrix operator+(const Matrix& a, const Matrix& b)
+{
+    cout << "Сумма матриц равна: " << endl;
+    Matrix result(a.row, a.column);
+    for (int i = 0; i < a.row; i++)
+    {
+        for (int j = 0; j < a.column; j++)
+        {
+            result.matrix[i][j] = a.matrix[i][j] + b.matrix[i][j];
         }
-        out << "\n";
+    }
+    return result;
+}
+
+ostream& operator<<(ostream& out, const Matrix& m) //ф-ция для вывода матрицы
+{
+    for (int i = 0; i < m.row; i++)
+    {
+        for (int j = 0; j < m.column; j++)
+            out << m.matrix[i][j] << " ";
+        out << endl;
     }
     return out;
 }
+
 int main()
 {
-    std::vector<std::vector<int>> v = {{7, 5}, {3, 6}};
-    Matrix m (v);
-    Matrix m1({{1, 2},{3, 4}});
-    std::cout<<m1;
-    Matrix m2;
-    m2 = m + m1;
-    std::cout<<m2;
-    m = m1 * m2;
-    m = Transpose(std::move(m2));
-    std::cout << m[1][0] << std::endl;
-    m = Transpose(m1);
-    std::cout << m[1][0] << std::endl;
+    setlocale(LC_ALL, "rus");
 
-    Matrix m3( {
-                       {1},
-                       {3},
-                       {4}
-               });
+    cout << "Выберите операцию: \n 1) Сложение матриц \n 2) Умножение матриц \n 3) Умножение матрицы на вектор" << endl;
+    int n;
+    cin >> n;
 
-    Matrix m4 ({
-                       {1, 1, 1 }
-               });
-    std::cout << (m4 * m3)[0][0] << std::endl;
+    switch (n)
+    {
+        case 1: // ввод для сложения
+        {
+            int r1, c1, r2, c2;
+            cout << "Введите количество строк матриц: ";
+            cin >> r1;
+            r2 = r1;
+            cout << "Введите количество столбцов матриц: ";
+            cin >> c1;
+            c2 = c1;
+            cout << "Введите элементы 1 матрицы: ";
+
+            Matrix mat(r1, c1);
+            mat.EnterMatrix();
+            cout << mat;
+
+            cout << "Введите элементы 2 матрицы: ";
+
+            Matrix mat2(r2, c2);
+            mat2.EnterMatrix();
+            cout << mat2;
+
+            cout << endl;
+
+            cout << mat + mat2;
+            break;
+        }
+        case 2: // ввод для умножения между матрицами
+        {
+            int r1, c1, r2, c2;
+            cout << "Введите количество строк для 1 матрицы: ";
+            cin >> r1;
+            cout << "Введите количество столбцов для 1 матрицы: ";
+            cin >> c1;
+
+            r2 = c1;
+
+            cout << "Введите элементы 1 матрицы: ";
+
+            Matrix mat(r1, c1);
+            mat.EnterMatrix();
+            cout << mat;
+
+            cout << "Количество строк для 2 матрицы: " << r2 << endl;
+            cout << "Введите количество столбцов для 2 матрицы: ";
+            cin >> c2;
+
+            cout << "Введите элементы 2 матрицы: ";
+
+            Matrix mat2(r2, c2);
+            mat2.EnterMatrix();
+            cout << mat2;
+
+            cout << endl;
+
+            cout << mat * mat2;
+            break;
+        }
+        case 3: // ввод для умножения матрицы на вектор
+        {
+            int r1, c1, r2;
+            cout << "Введите количество строк для 1 матрицы: ";
+            cin >> r1;
+            cout << "Введите количество столбцов для 1 матрицы: ";
+            cin >> c1;
+
+            r2 = c1;
+
+            cout << "Введите элементы 1 матрицы: ";
+
+            Matrix mat(r1, c1);
+            mat.EnterMatrix();
+            cout << mat;
+
+            cout << "Размерность вектора: " << r2 << endl;
+
+            cout << "Введите элементы вектора: ";
+
+            Matrix mat2(r2, 1);
+            mat2.EnterMatrix();
+            cout << mat2;
+
+            cout << endl;
+
+            cout << mat * mat2;
+            break;
+        }
+    }
+    return 0;
 }
+
